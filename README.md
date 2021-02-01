@@ -16,3 +16,7 @@ El objetivo de este trabajo es estudiar la asociación entre conductas saludable
                               Figura 1: Hipótesis del trabajo. 
                                     ------> : Asociacion.  
                           (?): Asociacion que se busca poner a prueba. 
+
+
+
+![alt text](https://github.com/Martinaweil/Biometr-a2/blob/main/poster.jpg?raw=true)
