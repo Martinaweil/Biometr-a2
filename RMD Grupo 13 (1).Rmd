@@ -1,0 +1,719 @@
+---
+title: "Desigualdades en salud: Estudio de la asociación entre conductas saludables y nivel socioeconómico a partir de la Encuesta Nacional de Factores de Riesgo"
+subtitle: "Weill Martina, Fernández Shanahan Tomás, Peralta Martinez Ramón"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+# Librerias necesarias
+library(car)
+library(ggpmisc)
+library(emmeans)
+library("dplyr")
+library("sjPlot")
+library(ResourceSelection)
+library(tidyr)
+library(scales)
+library(ggplot2)
+library(ROCit)
+library(dplyr)
+library(ggplot2)
+library(kableExtra)
+```
+
+## Introducción
+
+Las enfermedades crónicas no transmisibles (ENT) - e.g., Diabetes, Cáncer, Enfermedades cardiovasculares, etc. - no tienen una única causa y los determinantes que las producen son múltiples. Estos determinantes pertenecen a distintos niveles de organización y van desde lo molecular hasta lo social. El conocimiento de estos determinantes tiene implicancias en la prevención y el control de la enfermedad (Susser y Susser 1996; Susser 2004). 
+
+En los últimos años se ha enfatizado la relevancia de los factores sociales como determinantes de enfermedades a través de múltiples factores de riesgo (Phelan et al. 2010; Marmot and Allen 2014). Existe fuerte evidencia de que la mayoría de los factores de riesgo de ENT están estructurados a lo largo del gradiente socioeconómico (Di Cesare et al. 2013). Las ENT afectan en mayor proporción a países de bajos ingresos: las muertes prematuras en las edades de mayor productividad desfavorecen el desarrollo económico. 
+
+El objetivo de este trabajo es estudiar la asociación entre conductas saludables (en particular, el Nivel de  Actividad Física) y el nivel socioeconómico (ajustado por sexo y edad) en individuos mayores de 18 años. La hipótesis planteada es que el Nivel de Actividad Física está asociado con el Nivel Socioeconómico, y se espera que un menor Nivel Socioeconómico esté vinculado con un menor Nivel de Actividad Física. Debido a que la baja actividad física es un factor de riesgo para las ENT, los sectores más sedentarios serían más propensos a contraer enfermedades no transmisibles. 
+
+
+                Nivel Socioeconomico---?--->  Nivel de Actividad Física ------> ENT
+                
+                              Figura 1: Hipótesis del trabajo. 
+                                    ------> : Asociacion.  
+                          (?): Asociacion que se busca poner a prueba. 
+
+
+## Materiales y Métodos 
+
+  En la Argentina en el año 2005, el INDEC implementó una Encuesta Nacional de Factores de Riesgo (ENFR) que es realizada cada cuatro años. El objetivo de esta encuesta es estudiar los comportamientos y condiciones de vida que pueden afectar la salud de la población de 18 años y más, así como algunas características de las viviendas y de los hogares donde residen. La encuesta alcanza a individuos  residentes de  localidades urbanas de 5.000 y más habitantes. 
+  En la ENFR del año 2018 se seleccionaron al azar 49.170 viviendas de todas las jurisdicciones de la Argentina, y se obtuvieron 29.224 respuestas. Para este trabajo se seleccionaron de la ENFR del 2018 solo aquellas variables que resultaron relevantes para el objetivo principal de este estudio (Nivel de actividad fisica, Nivel de estudios, Quintil de ingresos, Tipo de vivienda, etc). Se eliminaron todos los individuos que presentaron ausencia de respuesta (NAs) en la base de datos. Esto se decidió al considerar que representaban menos del 1% de la base de datos.
+
+### 1. Variables del estudio:
+
+a) Variable respuesta (VR): Nivel de actividad física (Bajo vs Medio y Alto). Es una variable cualitativa que puede tomar tres valores (Baja, Medio o Alto).
+Pertenecerán al nivel de actividad física Alto aquellos encuestados que cumple alguno de los siguientes criterios: 
+
+* 3 o más días de actividad física intensa acumulando al menos 1500 MET-minuto por semana. 
+* 7 o más días de cualquier combinación (caminata, actividad física moderada, actividad física intensa) que acumulen al menos 3000 MET-minutos por semana. 
+
+  Pertenecerán al nivel de actividad física Medio aquellos encuestados que cumplan alguno de los siguientes criterios:
+
+* 3 o más días de actividad física intensa, al menos 20 minutos 
+* 5 o más días de actividad física moderada o caminata que acumulen al menos 30 minutos
+* 5 o más días de cualquier combinación (caminata, actividad física moderada, actividad física intensa) que acumulen al menos 600 MET-minutos por semana.
+
+Pertenecerán al nivel de actividad física Bajo aquellos encuestados que cumplan el siguiente criterio:
+
+* Sin actividad reportada o no incluido en niveles Medio o Alto.
+
+**Estrategia de Análisis**: Dicotomizar la VR en “Bajo” y “Medio-Alto”. Así pues, una posible distribución candidata sería la distribución Bernoulli en donde a cada observación independiente se determina cuál condición de Nivel de Actividad Física cumple (si “Bajo” o “Medio-Alto”). 
+
+### b) Variables explicatorias (VE): 
+
+* VE1: Edad del individuo.
+* VE2: Sexo del individuo. Representa el sexo del encuestado. Puede tomar dos posibles valores (1 para varón, 2 para mujer).
+* VE3: Tipo de vivienda en la que habita el individuo. Representa el estilo de vivienda del encuestado. Puede tomar siete posibles valores (del 1 al 7), correspondientes a las siguientes categorías: Casa, Casilla, Departamento, Pieza de inquilinato, Pieza de hotel o pensión, Local no construido para habitación, Otros
+* VE4: Material del piso de la vivienda. Material predominante de los pisos de la vivienda. Puede tomar cuatro posibles valores (del 1 al 4), correspondientes a las siguientes categorías: Cerámica, baldosa, mosaico, mármol, madera o alfombra;  Cemento o ladrillo fijo;  Tierra o ladrillo suelto; Otros.
+* VE5: Baño. Indicador numérico de presencia (1) o ausencia (2) de baño o letrina.
+* VE6: Quintil de ingresos del hogar. Indicador numérico de a qué quintil de hogares pertenece según el ingreso por unidad consumidora (toma valores del 1 al 5).
+* VE7: Nivel de estudios del individuo. Representa el nivel de formación del encuestado. Puede tomar ocho posibles valores (del 1 al 8), correspondientes a las siguientes categorías: Sin instrucción, Primario incompleto, Primario completo, Secundario incompleto, Secundario completo, Terciario/universitario incompleto, Terciario/universitario completo, Educación especial
+* VE8: Tipo de cobertura médica. Representa el nivel de cobertura de salud del encuestado. Puede tomar dos posibles valores (1 si el encuestado tiene obra social, prepaga o servicio de emergencia médica, 2 si sólo tiene cobertura pública).
+* VE9: % de hogares con necesidades básicas insatisfechas de la provincia. Representa el porcentaje de hogares, a nivel provincial, que no tienen las necesidades básicas satisfechas. 
+
+**Estrategia de Análisis**: Todas las VE son de carácter Fijo ya que son informativas. Todas las VE serán analizadas como cualitativas salvo Edad. 
+
+### Estrategia de modelado:
+
+  La VR es del tipo dicotómica donde se podría decir que el nivel bajo de actividad física representa un “fracaso” mientras que el nivel medio-alto representa un “éxito”. Para poder realizar un ajuste matemáticamente robusto en una VR con Distribucion Bernoulli (donde hay una cota inferior y una superior) es necesario modelar una transformación de la VR.  La función de enlace utilizada en una regresión logística es del tipo Logit, es decir el logaritmo del cociente entre la probabilidad de éxito y la probabilidad de fracaso (odds). Al transformar la VR a odds esta pasa de estar acotada entre 0 y 1 a estar acotada entre 0 y +infinito. Al aplicar ln, se obtiene una nueva variable que puede adoptar cualquier valor real. 
+  Así pues, el modelo consta de tres componentes:
+
+* Componente Aleatorio: La VR, en este caso es Nivel de Actividad Física.
+
+* Predictor Lineal: Combinación lineal entre las distintas VE. Dado que en este caso se cuenta con una variable cuantitativa (Edad), se decide parametrizar como una regresión lineal.
+
+* Función de Enlace: Es una función que vincula el Componente Aleatorio (la VR) con el Predictor Lineal. Esta función es fundamental ya que permite modelar variables respuesta que son acotadas. En el caso de las distribuciones Bernoulli la función de enlace es el Logaritmo Natural (ln). 
+
+
+  La clasificacion de las VE implicó un desafío analitico, ya que a priori las VE anteriormente planteadas podrian  ser colineales o no tener un efecto predictor en el modelo. Se abordó este problema mediante el planteo de Modelos Univariados; modelos que contienen una VE (sumando además Sexo y Edad, variables control). Se plantearon 5 modelos univariados y a cada uno se le realizó un análisis mediante la funcion drop1 de la libreria car. Esta funcion realiza una prueba de hipotesis de diferencia de devianzas, comparando la devianza del modelo planteado con la devianza del modelo sin cada una de las VE en cuestión (secuencialmente). Si la prueba para una dada VE es significativa se concluye que la devianza del modelo inicialmente planteado difere de la del modelo sin esa VE. De lo que se desprende que esa VE aporta para el mejor ajuste del modelo (disminuye la devianza del modelo).
+  
+  Los modelos univariados permitieron determinar cuales VE tendrian un efecto sobre la VR. El siguiente paso fue determinar si hay colinealidad (asociación) entre las VE seleccionadas. Para esto se realizo un analisis con la funcion drop1 solamente que en este caso en vez de realizarlo con modelos univariados se plantearon modelos con las VE Sexo, Edad, NBI y alguna otra VE. NBI es una variable del bloque provincial, al ver que NBI tenia una efecto sobre la VR fue la primer VE no control incluida en el modelo. Esto fue asi ya que NBI es una variable importante que era de interés para el estudio.  Por lo tanto, si la prueba de drop1 para una dada VE es significativa se concluye que la devianza del modelo inicialmente planteado difere de la del modelo sin esa VE. Por incumplimiento del supuesto de linealidad se convirtió a la variable NBI, originalmente cuantitativa, en una cualitativa de tres niveles, donde cada nivel representa a un tercil de las provincias.
+  
+### 2. Modelos univariados - Estrategia para la selección de VE:
+  Para determinar cuáles VE (de las mencionadas previamente) incluir en el modelo se debió realizar un selección de VE. Se plantearon modelos Univariados; modelos que presentan una VE (ademas de Sexo y Edad que son las VE control). El objetivo fue determinar mediante la función drop1 aquellas VE que resultan significativas. Luego se analizaron modelos sumando variables, el objetivo aquí fue descartar variables que sean colineales. De esta manera se llegó finalmente a un  modelo aditivo final. No se plantearon interacciones debido a que este fue un estudio observacional por lo tanto solo se deberían plantear aquellas interacciones que sean de interés, en nuestro caso no se propuso ninguna interacción a priori. 
+
+
+
+```{r include=FALSE}
+
+#aca vamos a cargar los datos, esto no se ve en el pdf..
+
+rm(list=ls())
+
+setwd("~/Documents/Ramón/Biometría II/TP Final/Datos")
+
+Datos <- read.delim("~/Documents/Ramón/Biometría II/TP Final/Datos/Datos")
+provincias <- read.delim2("~/Documents/Ramón/Biometría II/TP Final/Datos/NBI por Provincia", header=FALSE)
+str(Datos)
+
+
+```
+### 3. Primera aproximación a los datos y edición:
+
+  Como primer paso se debió dicotomizar la variable respuesta (nivel de actividad física) pasando de tres niveles (actividad baja, media y alta) a dos (sin actividad / con actividad). Para esto se agrupó actividad baja por un lado y media y alta por otro, quedando asi la variable respuesta con dos niveles - Sin Actividad y Con Actividad respectivamente. 
+
+```{r include=FALSE}
+actividadmediaalta<-which(Datos$nivel_actividad_fisica<3) # Se crea el objeto con el cual se selecciona
+Datos$nivel_actividad_fisica[actividadmediaalta]<-1 # Luego de la selección se reemplaza por un 1
+
+actividadbaja<-which(Datos$nivel_actividad_fisica==3) # Se crea el objeto con el cual se selecciona
+Datos$nivel_actividad_fisica[actividadbaja]<-0 # Luego de la selección se reemplaza por un 0
+
+
+Datos$nivel_actividad_fisica_num <-Datos$nivel_actividad_fisica # Se crea la columna donde tiene clase numérica
+Datos$nivel_actividad_fisica <- as.factor(Datos$nivel_actividad_fisica) # Se crea laa columna donde tiene clase factor
+str(Datos) # Se chequea que se hayan efectuado bien los cambios
+```
+
+```{r include=FALSE}
+# Se agrega al dataframe la columna correspondiente al NBI de la provincia de cada encuestado.
+
+Datos$porcentaje<-NA  #invento nueva columna en principio vacia
+N<-length(provincias$V2)  #le pongo nombres a las prov y agrego el porcentaje 
+for (i in 1:N){
+  pos<-which(Datos$provincia==provincias$V1[i])
+  k<-length(pos)
+  for (t in 1:k){
+    Datos$porcentaje[pos[t]]=provincias$V2[i]
+    Datos$provincia[pos[t]]=provincias$V3[i]
+    
+  }
+}
+```
+
+  Al analizar nuestros datos podemos observar que hay 254 personas que no reportaron la actividad fisica (NAs), se puede tambien ver que no hay valores faltantes en las otras variables explicatorias. Las filas con NAs fueron eliminadas.
+
+
+```{r echo=FALSE}
+#antes de pasar a factor podemos ver algunas cosas:
+
+summary(Datos)#en summary podemos ver que hay 254 personas que no reportaron la actividad fisica (NAs)
+```
+  
+  
+  La variable "nivel de estudios" tiene 8 categorias. Sin embargo muchas categorias tienen un muy bajo nivel de casos, por ende se decidió restructurar los datos de manera que haya tres categorias. Estas categorias fueron creadas a partir de los resultados de la ENFR en los que se agruparon las conclusiones de esta manera:
+  
+  -Categoria 1: sin instrucción, primario incompleto. 
+  
+  -Categoria 2: primario completo, secundario incompleto
+  
+  -Categoria 3: secundario completo, universitario incompleto, universitario completo
+  
+  La categoría "Educación especial" se eliminó debido a que no correspondía a ninguna de las categorías generadas (se desconoce hasta que nivel de estudios llegaron) y el número de individuos era muy bajo (45).
+
+```{r include=FALSE}
+#elimino educacion especial
+Datos<-Datos[Datos$nivel_estudios!=8,] 
+
+# Los niveles de estudio 1 ó 2 ahora son la nueva categoría 1
+Datos$nivel_estudios[which(Datos$nivel_estudios==1|Datos$nivel_estudios==2)]<-1 
+
+# Los niveles de estudio 3 ó 4 ahora son la nueva categoría 2
+Datos$nivel_estudios[which(Datos$nivel_estudios==3|Datos$nivel_estudios==4)]<-2
+
+# Los niveles de estudio 7 ó 5 ahora son la nueva categoría 3    
+Datos$nivel_estudios[which(Datos$nivel_estudios==6|Datos$nivel_estudios==7|Datos$nivel_estudios==5)]<-3
+```
+
+```{r include=FALSE}
+# Eliminación de NAs
+Datos<-Datos[!is.na(Datos$nivel_actividad_fisica),] #elimino NAs
+Datos<-Datos[!is.na(Datos$nivel_actividad_fisica_num),] #elimino NAs
+
+
+# Las variables que nos intereza cambiar a factores
+col<-c("provincia","Sexo","tipo_vivienda", "material_piso_viv","banio","quintil_hogar","nivel_estudios","tipo_cobertura","agua_a_traves_de") 
+
+Datos[col] <- lapply(Datos[col], as.factor) #transformo esas variables a factores
+
+Datos$Edad<-as.numeric(Datos$Edad) # generamos columna con edad como numeric 
+Datos$porcentaje<-as.numeric(Datos$porcentaje) # Convertimos NBI a numeric
+
+```
+  Por otro lado, dado que se cuentan con muchas variables que describen el nivel socioeconomico a nivel Hogar/Vivienda, se decidió crear una nueva variable que actuará como un indicador de vulnerabilidad a nivel Hogar/Vivienda. Aquel individuo que cumpla con al menos una de las siguientes condicones será considerado como Vulnerable (1) en el nivel Hogar/Vivienda. 
+
+* Si tipo_vivienda == 6 o 2 (local no construido para habitacion o casilla)
+
+* Si material_piso_viv == 3 (tierra o ladrillo suelto)
+
+* Si agua_a_traves_de == 3 o 4 (obtiene agua a traves de perforacion con bomba manual / aljibe o pozo).
+
+* Si baño == 2 (no tiene baño)
+
+
+```{r include=FALSE}
+
+
+Datos <- mutate(Datos,
+        vulnerable_hogar = case_when(
+          (Datos$tipo_vivienda == "6"| Datos$tipo_vivienda == "2"| Datos$material_piso_viv == "3" | Datos$agua_a_traves_de=="3" | Datos$agua_a_traves_de=="4" | Datos$banio=="2") ~ "1", TRUE ~ "0" ))
+
+Datos$vulnerable_hogar<-as.factor(Datos$vulnerable_hogar)
+str(Datos) # Se chequea que se hayan efectuado los cambios correcatmente
+```
+
+  Por incumplimiento del supuesto de linealidad (apéndice) se convirtió a la variable NBI, originalmente cuantitativa, en una cualitativa de tres niveles, donde cada nivel representa a un tercil, siendo el primer tercil el de menor NBI, y el tercer tercil el de mayor.
+```{r include=FALSE}
+nbi_crec <- sort(unique(Datos$porcentaje), decreasing = FALSE)# Lista con todos los NBI posibles de menor a mayor
+Datos$nbi_agrup <- Datos$porcentaje # Se duplica la columna original a una nueva columna
+
+
+for(i in 1:8){
+Datos$nbi_agrup[Datos$nbi_agrup == nbi_crec[i]] <- "nbi_bajo"# Se aloca al nivel bajo el primer tercile
+Datos$nbi_agrup[Datos$nbi_agrup == nbi_crec[i+8]] <- "nbi_medio"# Se aloca al nivel medio el segund tercile
+Datos$nbi_agrup[Datos$nbi_agrup == nbi_crec[i+16]] <- "nbi_alto"# Se aloca al nivel alto el tercer tercile
+
+}
+Datos$nbi_agrup <- as.factor(Datos$nbi_agrup)
+
+str(Datos) # Se chequea que los cambios se hayan efectuados correctamente
+
+```
+
+## Resultados:
+
+### 1. Estadística Descriptiva:
+  Con el objetivo de desarrollar una mejor comprensión de los datos disponibles se utilizaron distintas herramientas gráficas para poder determinar el comportamiento cualitativo de las distintas variables. Como primer paso se buscó observar la variación en el nivel de actividad física de los individuos dependiendo del sexo (Figura 1). Se observa un mayor porcentaje de individuos varones que realizan actividad física respecto a las mujeres.
+
+
+```{r echo=FALSE, out.width = "70%", fig.align = "center"}
+
+# Grafico de barras con las modificaciones esteticas pertinentes
+etiquetas_nuevas <-c("1" = "Varón", "2" = "Mujer") 
+p1<- ggplot(Datos, aes(x= nivel_actividad_fisica,group=Sexo)) + 
+    geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+    geom_text(aes(label = ..count.., y= ..prop..), stat= "count", vjust = 1.5) +
+    labs(y = "Percent", fill="nivel_actividad_fisica") +
+    facet_grid(~Sexo, labeller = labeller(Sexo = etiquetas_nuevas)) +
+    scale_y_continuous(labels=percent)+
+    theme(legend.position = "none") +
+    scale_x_discrete(labels=c("Bajo", "Mediano/Alto"))+
+    ggtitle("Porcentaje de individuos que realizan actividad física según el sexo")+
+    xlab("Nivel de actividad física")+
+    ylab("Porcentaje")
+p1
+
+```
+
+*Figura 1: Porcentaje de individuos que realizan actividad física segun el sexo. Indicado dentro de cada barra está el número de individuos pertenecientes a esa categoría.*
+
+
+
+  Luego, siguiendo con la hipótesis de este trabajo, se buscó observar la tendencia general del porcentaje de individuos que realizan actividad física al incrementar el poder económico. Para esto se realizaron dos análisis: en el primero se estudió el poder económico. En la Figura 2 se observa el porcentaje de individuos que realizan o no realizan actividad física en función del quintil de ingresos del hogar. La tendencia, más notoria a partir del cuarto quintil, es el incremento del porcentaje de individuos que realizan actividad física a medida que aumenta el poder económico del hogar. El segundo quintil es el único con una mayor proporción de individuos que no realizan actividad física. 
+
+
+```{r echo=FALSE, out.width = "70%" , fig.align = "center"}
+# Grafico de barras con las modificaciones estéticas pertinentes
+etiquetas_nuevas2 <-c("1" = "Quintil 1", "2" = "Quintil 2",  "3" = "Quintil 3", "4" = "Quintil 4",  "5" = "Quintil 5")
+p4 <- ggplot(Datos,  aes(x= nivel_actividad_fisica,group=quintil_hogar))  + 
+    geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+    geom_text(aes(label = ..count.., y= ..prop..), stat= "count", vjust = 1.5) +
+    labs(y = "Percent", fill="nivel_actividad_fisica") +
+    facet_grid(~quintil_hogar, labeller = labeller(quintil_hogar = etiquetas_nuevas2)) +
+    scale_y_continuous(labels=percent)+
+    theme(legend.position = "none") +
+    scale_x_discrete(labels=c("Bajo", "Mediano/Alto"))+
+    xlab("Nivel de actividad fisica")+
+    ylab("Porcentaje")+
+    ggtitle("Porcentaje de individuos que realizan actividad fisica segun \nel Quintil del hogar")
+
+p4
+
+
+```
+
+*Figura 2: Porcentaje de individuos que realizan actividad física para cada quintil. Indicado dentro de cada barra está el número de individuos pertenecientes a esa categoría. *
+
+
+
+  Como última estrategia se realizó un análisis similar pero utilizando un indicador socio-cultural, el nivel de formación del encuestado (nivel de estudios). El resultado se puede observar en la Figura 3: hay una tendencia de incremento en el porcentaje de individuos que realizan actividad física al incrementar la formación del encuestado. Para los niveles de instrucción màs bajos el porcentaje de individuos que no realizan actividad física es mayor al de individuos que si realizan, mientras que para el nivel más alto esta tendencia se revierte.  
+
+
+```{r echo=FALSE, out.width="70%", fig.align="center"}
+# Grafico de barras con las modificaciones estéticas pertinentes
+etiquetas_nuevas3 <-c("1" = "Nivel de estudios 1", "2" = "Nivel de estudios 2",  "3" = "Nivel de estudios 3")
+
+p5 <- ggplot(Datos,  aes(x= nivel_actividad_fisica,group=nivel_estudios))  + 
+    geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+    geom_text(aes(label = ..count.., y= ..prop..), stat= "count", vjust = 1.5) +
+    labs(y = "Percent", fill="nivel_actividad_fisica") +
+    facet_grid(~nivel_estudios, labeller = labeller(nivel_estudios = etiquetas_nuevas3)) +
+    scale_y_continuous(labels=percent)+
+    theme(legend.position = "none") +
+    scale_x_discrete(labels=c("Bajo", "Mediano/Alto"))+
+    xlab("Nivel de actividad física")+
+    ylab("Porcentaje")+
+    ggtitle("Porcentaje de individuos que realizan actividad física según \nel nivel de estudios")
+
+p5
+
+```
+
+*Figura 3: Porcentaje de individuos que realizan actividad física para cada nivel de estudios. Indicado dentro de cada barra está el número de individuos pertenecientes a esa categoría.*
+
+
+
+  En los tres análisis presentados se puede observar una tendencia general de un incremento en la actividad física al aumentar el nivel socioeconómico de los individuos, lo cual apoya la hipótesis planteada. Teniendo esto en cuenta se procedió con el modelado de los datos. 
+
+
+
+### 2. Análisis secuencial de modelos:
+
+  Habiendo hecho un análisis descriptivo preliminar, y con evidencia cualitativa que apoya la hipótesis planteada, se procedió a realizar un análisis secuencial de los distintos modelos aditivos. Se fijaron las variables control Sexo y Edad. La encuesta presenta variables a distintos niveles (provincial, hogar, individual), se incluyó a la variable NBI como una de pseudo control, con la cual se buscaba incluir en el modelo el nivel económico a nivel provincial, el mayor nivel presente en la base de datos. Los resultados de este análisis se pueden observar en la tabla 1. Se consideraron cumplidos los supuestos de estos modelos (mirar apéndice).
+
+
+*Tabla 1: Resultados obtenidos del análisis secuencial de los modelos aditivos, incluye P-Valores resultado del análisis por la función drop1 y el AIC asociado a ese modelo en particular.*
+
+![](~/Documents/Ramón/Biometría II/TP Final/p valores Modelos 2.png)
+
+
+
+
+
+Se controló la inclusión o exclusión de las distintas variables por el aumento significativo de sus p-valores con el objetivo de descartar variables que sean colineales (que estén asociadas). Debido a esto se concluyó que el modelo más apropiado era el modelo 15 (m15 en la tabla) el cual incluye las variables control, NBI, quintil de ingresos, nivel de estudios y cobertura. 
+
+
+
+**Modelo aditivo Final - Parametrizado como un modelo de Regresión Lineal**:
+
+El modelo final utilizado en este trabajo fue:
+
+![](~/Documents/Ramón/Biometría II/TP Final/ecuacion_modelo_final.png)
+
+De esta manera el intercepto se interpreta como el valor de ln(Odds) para los individuos que estén representados por los niveles:
+* Hombre (Sexo1)
+* 18 años de edad.
+* Tercil de NBI bajo.
+* Quintil de ingresos nº 5
+* Universitario completo o incompleto.
+
+Se eligieron para el intercepto aquellos niveles de las distintas VE que fueran representativas de un nivel socioeconómico alto (salvo para Sexo y Edad que son las variables control), para poder luego ver claramente si pertenecer a un nivel socioeconómico bajo reduce la probabilidad de realizar actividad física.  
+Finalmente se determinó la magnitud del efecto de cada variable mediante el odds ratio.
+
+### Resultados y Discusión:
+
+
+```{r include=FALSE}
+#MODELO FINAL:
+
+# Primero:
+# 1) Ajustamos por Edad a 18 (centramos):
+
+summary(Datos$Edad)
+Datos$Edad_ajus <- Datos$Edad - 18
+
+summary(Datos$Edad_ajus)
+
+# 2) Ordenamos las VE para que vayan al B0 aquellos niveles representativos del menor nivel socioeconomico:
+
+
+# Quintil:
+levels(Datos$quintil_hogar)
+
+Datos$quintil_hogar <- factor(Datos$quintil_hogar, levels = c("5", "4", "3","2","1"))
+levels(Datos$quintil_hogar)
+
+# Nivel de estudios:
+levels(Datos$nivel_estudios)
+
+Datos$nivel_estudios <- factor(Datos$nivel_estudios, levels = c("3","2","1"))
+levels(Datos$nivel_estudios)
+
+
+# NBI:
+levels(Datos$nbi_agrup)
+Datos$nbi_agrup <- factor(Datos$nbi_agrup, levels = c("nbi_bajo", "nbi_medio", "nbi_alto"))
+levels(Datos$nbi_agrup)
+
+```
+
+
+```{r fig.align="center", include=FALSE, out.width="80%"}
+
+# Ahora si, el MODELO FINAL:
+
+m15<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus + nbi_agrup  + quintil_hogar + nivel_estudios + tipo_cobertura, data = Datos, family = binomial)
+
+drop1(m15) #
+summary(m15) # Para ver los coeficientes y su significacncia a escala del predictor lineal.
+round(exp(confint(m15)),2) # Para obtener los OR respecto al intercept.
+
+```
+En la Figura 4 se observan los odds ratio ajustados para cada variable, los cuales reflejan su magnitud de efecto.
+```{r echo=FALSE}
+# graficamos como dan los OR para cada nivel de las VE. Estos son OR referidos respecto al intercepto.
+plot_model(m15,title="",show.values = TRUE, value.offset = .3,show.p = TRUE, value.size = 3, line.size = 0.5, dot.size = 1, digits = 3) + ylim(0.57, 1.22)
+```
+
+*Figura 4: plot_model del modelo final.*
+
+  El nivel socioeconómico es un cualidad difícil de representar en una única variable, así pues este modelo usa como indicadores del nivel económico y social de un individuo las variables Quintil de Ingresos, NBI, Nivel de Estudios y Tipo de Cobertura. 
+
+  A partir del modelo final se determinó que la probabilidad de realizar actividad física es menor para aquellos individuos que pertecen a un nivel socioeconómico bajo. Para ilustrar este concepto se calculó la probabilidad de realizar actividad física para individuos de los distintos quintiles ajustando por las demas variables (Figura 5). Allí se puede ver que la probabilidad de realizar actividad fiísica para un individuo del quintil 5 (el nivel de mayor ingresos)  es significativamente mayor que para un individuo del quintil 1 (el nivel de menor ingresos). 
+
+```{r fig.align="center", include=FALSE, out.width="80%"}
+
+
+# Yo ramon dejaria solo el de quintil. Como codigo, no que aparezca el grafico. 
+compQuintin_fac_response <- emmeans(m15,pairwise ~ quintil_hogar, type = "response")
+compQuintin_fac_response
+
+# Ahora pruebo de graficar probabilidades para quintil:
+
+estad <- as.data.frame(compQuintin_fac_response$emmeans)
+
+prob_por_quintil <- ggplot(estad, aes(x = quintil_hogar, y = prob)) + geom_errorbar(aes(ymin = asymp.LCL,
+ymax = asymp.UCL,), width = 0.1) + geom_point(colour = "red", size = 3) + ylab("Probabilidad de realizar Actividad fisica") + theme_grey(base_size = 16) + theme_bw() + annotate("text", x = c(1.0, 2.0, 3.0, 4.0, 5.0), y = c(0.580, 0.550, 0.525, 0.52, 0.515), label = c("A", "B",
+"BC", "C", "C")) 
+
+```
+```{r echo=FALSE}
+prob_por_quintil
+```
+
+*Figura 5: Probabilidad ajustada de realizar actividad física según el quintil.*
+
+
+
+```{r include=FALSE}
+disminucion_porcentual_respecto_intercept<-(round(exp(confint(m15)),2)-1)*100
+disminucion_porcentual_respecto_intercept
+```
+
+Observando la Tabla 2 se puede ver que ajustando por las demas variables el modelo predice que el Odds de actividad fisica para Sexo2 (mujeres) disminuye entre un 14% y 22% respecto al Odds de varones. 
+
+A su vez, por cada año de edad que aumenta y ajustando por las demas variables, se predice una disminucion en el Odds del 2%. 
+
+Por otra parte, los individuos de provincias con NBI alto (alto % de necesidades basicas insatisfechas) presentan un Odds de actividad fisica que es entre 21% y 30% menor que el Odds de los individuos que viven en una provincia con NBI bajo. 
+
+Ademas se observa que el Odds de actividad fisica en individuos pertenecientes al quintil de ingresos 1 (el menor nivel de ingresos) disminuye entre 15% y 28% respecto a los individuos del quintil 5 (el mayor nivel de ingresos). 
+
+Por otro lado, el Odds de actividad fisica en individuos con un nivel de estudios 1 (sin instrucción, primario incompleto) disminuye entre 19% y 33% respecto a los individuos con un nivel de estudios 3 (secundario completo, universitario incompleto, universitario completo). 
+
+Finalmente, el Odds de actividad fisica en individuos con un tipo de cobertura 2 (cobertura publica) disminuye significativamente entre 0.22% y 11% respecto a los individuos con cobertura 1 (obra social, prepaga o servicio de emergencia médica).
+
+
+
+
+*Tabla 2: Magnitud de efecto para el modelo final (OR de cada nivel referidos al intercepto)*
+
+![](~/Documents/Ramón/Biometría II/TP Final/Tabla modelo final final en serio.png)
+
+Se procedió a validar el modelo utilizando una tabla de clasificacion cruzada. La tabla de clasificacion cruzada agrupa por un lado a los individuos que realizan o no actividad fisica (segun lo observado). Y por otro lado dentro se esos grupos, la cantidad de individuos que realizan o no actividad fisica segun lo predicho por el modelo. Dado que el modelo arroja probabilidades para cada combinacion de niveles de variables explicatorias, es necesario fijar una probabilidad a partir de la cual se considera que el individuo si realiza actividad fisica. Para esto se realizó una curva ROC que permite determinar el valor optimo de probabilidad de corte tal que se maximice la Tasa de Verdaderos Positivos (TPR) y se minimice la Tasa de Falsos Positivos (FPR).
+
+```{r fig.align="center", include=FALSE, out.width="60%"}
+#Planteo la curva  ROC para poder definir la probabilidad de corte.
+
+class2 <- m15$y   
+score2 <- m15$fitted.values
+
+ROCit_obj2 <- rocit(score=score2,class=class2)   #generamos la curva ROC
+output2<-plot(ROCit_obj2,values=TRUE)  
+output2$`optimal Youden Index point`[4] #Pedimos que nos de el punto de corte: el cutoff de la probabilidad tal que la la relacion sensibilidad/especificidad sea maxima. (O sea la mayor sensibilidad con la mayor especificidad posible).
+
+
+ ROCit_obj2$AUC  #pedimos el area bajo la curva ROC
+
+```
+```{r echo=FALSE}
+plot(ROCit_obj2,values=TRUE)
+```
+*Figura 6: Curva ROC. El eje horizontal representa la la Tasa de Falsos Positivos (FPR por sus siglas en ingles). El eje vertical representa la Tasa de Verdaderos Positivos (TPR). *
+
+
+En la Figura 6 se puede observar la curva ROC (linea continua) del modelo que denota como cambian TPR y FPR para distintas probabilidades de corte. Cuanto mayor sea el area debajo de la curva ROC, mas predictivo será el modelo ya que presenta una mayor relacion TPR/FPR. En ese caso se obtuvo un AUC de 0.62 indica que el modelo es poco predictivo, donde el solapamiento de negativos y positivos es grande. El cutoff que minimiza los falsos positivos y maximiza los verdaderos positivos es de 0.497. 
+
+
+```{r echo=FALSE, include=FALSE}
+
+measure2 <- measureit(score = score2, class = class2,       
+                     measure = c("ACC", "SENS", "FSCR"))
+
+plot(measure2$ACC~measure2$Cutoff, type = "l")
+mymetrics2 <- as.data.frame(cbind(Cutoff = measure2$Cutoff, TP = measure2$TP,
+                                 FP = measure2$FP, TN = measure2$TN,
+                                 FN = measure2$FN))
+
+
+sensibilidad<-(10717)/(10717 + 4475)
+especificidad<-(7433 )/(7433 +6300)
+exactitud<-(10717+7433)/(10717+7433+6300+4475)
+tasa_error<-(6300 + 4475)/(10717+7433 + 6300 + 4475)
+
+```
+
+
+*Tabla 3: validación para el cutoff óptimo.*
+```{r echo=FALSE}
+tablavalidacion<-mymetrics2[mymetrics2$Cutoff==output2$`optimal Youden Index point`[4],]
+knitr::kable(tablavalidacion, row.names = FALSE)
+```
+
+  La sensibilidad del modelo es del 71% es decir, por cada 100 personas que realizan ejercicio físico, el modelo elegido predice correctamente 71.
+  La especificidad es del 54% es decir, por cada 100 personas que no realizan ejercicio, nuestro modelo predice correctamente 54.
+  La exactitud es del 63%, es decir 63 de cada 100 predicciones realizadas por el modelo resultan correctas; por lo tanto la tasa de error es de 0,37, es decir cada 100 predicciones, 37 son incorrectas. 
+
+  
+### Conclusión
+
+  En conclusion, en este trabajo se han observado evidencias de que existe un cierto grado de asociación entre el nivel socioecónomico y el nivel de actividad física; siendo los individuos de menor nivel aquellos que presentan una menor probabilidad de realizar actividad fisica. Esto  se condice con la hipótesis inicialmente planteada. Por lo tanto, dado que la baja actividad física es un factor de riesgo para las ENT, en este trabajo se presentan evidencias para suponer que el bajo nivel socioeconomico es un factor de riesgo para ENF.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Apéndice:
+
+### Linealidad para la variable Edad:
+```{r echo=TRUE}
+
+# Primero tengo que calcular las proporciones de exitos para cada valor de edad:
+
+prob_exito_edad<-(tapply(Datos$nivel_actividad_fisica_num, Datos$Edad, mean)) #saco la media para la variable nivel_actividad_fisica para cada nivel de edad
+
+prob_fracaso_edad<-(1-prob_exito_edad) 
+
+odds_edad<-prob_exito_edad/prob_fracaso_edad  #calculo el odds
+
+lnOdds_edad<-log(odds_edad)  #calculo logit
+Edad_crec <- sort(unique(Datos$Edad),decreasing = FALSE) #eje x es la edad en sentido creciente
+
+
+linealidad_Edad<-plot(Edad_crec, lnOdds_edad, xlab="Edad",ylab="lnOdds")  #grafico predictor lineal en funcion de la edad
+
+```
+
+### Incumplimiento de la linealidad para la variable NBI:
+
+```{r echo=FALSE}
+prob_exito_porcentaje<-(tapply(Datos$nivel_actividad_fisica_num, Datos$porcentaje, mean))
+
+prob_fracaso_porcentaje<-(1-prob_exito_porcentaje)
+
+odds_porcentaje<-prob_exito_porcentaje/prob_fracaso_porcentaje
+
+lnOdds_porcentaje<-log(odds_porcentaje)
+nbi_crec <- sort(unique(Datos$porcentaje), decreasing = FALSE)
+
+regresion <- lm(lnOdds_porcentaje~nbi_crec)
+
+  
+df <- data.frame(x = nbi_crec)
+df$y <- lnOdds_porcentaje
+my.formula <- y ~ x
+p <- ggplot(data= df, aes(x = nbi_crec, y = lnOdds_porcentaje)) +
+   geom_smooth(method = "lm", se=FALSE, color="black", formula = my.formula) +
+   stat_poly_eq(formula = my.formula, 
+                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+                parse = TRUE) +         
+   geom_point()+xlab("NBI") + ylab("lnOdds")
+p
+```
+### Modelos:
+
+* Modelo con variables control edad y sexo:
+```{r}
+# Planteo una funcion para supuestos y Summary:
+
+
+
+m<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus , data = Datos, family = binomial)
+
+drop1(m, test = "Chisq")
+summary(m)
+
+```
+
+* Modelo univariado: Nbi
+```{r}
+
+
+m1<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus + nbi_agrup, data = Datos, family = binomial)
+
+drop1(m1,test = "Chisq")
+summary(m1)
+
+```
+* Modelo univariado: vulnerable
+```{r}
+m2<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus + vulnerable_hogar, data = Datos, family = binomial)
+
+drop1(m2,test = "Chisq")
+summary(m2)
+
+```
+
+* Modelo univariado: quintil
+```{r}
+m3<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus + quintil_hogar, data = Datos, family = binomial)
+
+drop1(m3,test = "Chisq")
+summary(m3)
+
+```
+* Modelo univariado: nivel de estudios 
+```{r}
+m4<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus + nivel_estudios, data = Datos, family = binomial)
+
+drop1(m4,test = "Chisq")
+summary(m4)
+
+```
+
+* Modelo univariado: cobertura
+```{r}
+m5<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus + tipo_cobertura, data = Datos, family = binomial)
+
+drop1(m5,test = "Chisq")
+summary(m5)
+
+```
+
+* Modelo: Nbi + vulnerable
+```{r}
+m6<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + vulnerable_hogar, data = Datos, family = binomial)
+
+drop1(m6,test = "Chisq")
+summary(m6)
+
+```
+
+* Modelo: Nbi + quintil
+```{r}
+m7<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + quintil_hogar, data = Datos, family = binomial)
+
+drop1(m7,test = "Chisq")
+summary(m7)
+
+```
+
+* Modelo: Nbi + cobertura
+```{r}
+m9<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + tipo_cobertura , data = Datos, family = binomial)
+
+drop1(m9,test = "Chisq")
+summary(m9)
+
+```
+
+* Modelo: Nbi + vulnerable + quintil
+```{r}
+m10<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + vulnerable_hogar + quintil_hogar, data = Datos, family = binomial)
+
+drop1(m10,test = "Chisq")
+summary(m10)
+
+```
+
+* Modelo: Nbi + vulnerable + nivel de estudios
+```{r}
+m11<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + vulnerable_hogar + nivel_estudios, data = Datos, family = binomial)
+
+drop1(m11,test = "Chisq")
+summary(m11)
+
+```
+
+* Modelo: Nbi + vulnerable + cobertura 
+```{r}
+m12<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + vulnerable_hogar + tipo_cobertura, data = Datos, family = binomial)
+
+drop1(m12,test = "Chisq")
+summary(m12)
+
+```
+
+* Modelo: Nbi + quintil + nivel de estudios 
+```{r}
+m13<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + quintil_hogar + nivel_estudios, data = Datos, family = binomial)
+
+drop1(m13,test = "Chisq")
+summary(m13)
+
+```
+
+* Modelo: Nbi + quintil + cobertura 
+```{r}
+m14<-glm(nivel_actividad_fisica_num ~ Sexo + Edad_ajus  + nbi_agrup + quintil_hogar + tipo_cobertura, data = Datos, family = binomial)
+
+drop1(m14,test = "Chisq")
+summary(m14)
+
+```
